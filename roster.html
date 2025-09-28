@@ -92,6 +92,21 @@
         <div id="subscribeNotice" style="margin-top:10px; font-size:14px;"></div>
       </div>
     </div>
+
+    <!-- Unsubscribe Modal -->
+    <div id="unsubscribeModal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; z-index:1000;">
+      <div style="background:white; padding:24px; border-radius:16px; max-width:400px; width:90%;">
+        <h2>Unsubscribe from Roster</h2>
+        <form id="unsubscribeForm" style="display:grid; gap:12px;">
+          <select name="memberId" id="unsubscribeSelect" required>
+            <option value="">Select a member</option>
+          </select>
+          <button type="submit" class="btn primary">Unsubscribe</button>
+          <button type="button" id="closeUnsubModal" class="btn" style="background:#eee;">Cancel</button>
+        </form>
+        <div id="unsubscribeNotice" style="margin-top:10px; font-size:14px;"></div>
+      </div>
+    </div>
       
     <!-- Roster Container -->
     <div id="rosterContainer" style="margin-top: 24px;">
@@ -150,6 +165,77 @@
       }
     });
 
+    // Unsubscribe
+    document.querySelector('.btn[href="#"]').addEventListener('click', e => {
+      e.preventDefault();
+      const unsubscribeModal = document.getElementById('unsubscribeModal');
+      const select = document.getElementById('unsubscribeSelect');
+      select.innerHTML = '<option value="">Select a member</option>';
+      
+      fetch(ROSTER_URL)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.ok || !data.roster) return;
+          // Sort roster alphabetically
+          data.roster.sort((a, b) => {
+            const lastA = (a['Last Name'] || '').toLowerCase();
+            const lastB = (b['Last Name'] || '').toLowerCase();
+            return lastA.localeCompare(lastB);
+          });
+          data.roster.forEach((member, idx) => {
+            const option = document.createElement('option');
+            option.value = idx; // we'll use index as identifier for simplicity
+            option.textContent = `${member['First Name']} ${member['Last Name']}`;
+            select.appendChild(option);
+          });
+        });
+    
+      unsubscribeModal.classList.remove('hide');
+    });
+    
+    document.getElementById('closeUnsubModal').addEventListener('click', () => {
+      document.getElementById('unsubscribeModal').classList.add('hide');
+      document.getElementById('unsubscribeNotice').textContent = '';
+    });
+    
+    document.getElementById('unsubscribeForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const select = document.getElementById('unsubscribeSelect');
+      const memberIndex = select.value;
+      if (memberIndex === '') return;
+    
+      try {
+        const rosterRes = await fetch(ROSTER_URL);
+        const rosterData = await rosterRes.json();
+        const member = rosterData.roster[memberIndex];
+    
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'update_roster', // you’ll handle this in Apps Script
+            firstName: member['First Name'],
+            lastName: member['Last Name'],
+            email: member['email'] || '',
+            phone: member['phone'] || '',
+            status: 'Not Active'
+          })
+        });
+        const result = await res.json();
+    
+        if (result.ok) {
+          document.getElementById('unsubscribeNotice').textContent = 'Successfully unsubscribed!';
+          fetchRoster(); // refresh roster list
+          document.getElementById('unsubscribeModal').classList.add('hide');
+        } else {
+          document.getElementById('unsubscribeNotice').textContent = 'Error: ' + (result.error || 'unknown');
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('unsubscribeNotice').textContent = 'Error unsubscribing.';
+      }
+    });
+
+  
   // Generate Roster
   async function fetchRoster() {
     try {
