@@ -222,14 +222,11 @@
     const editId = urlParams.get('edit');
     const token  = urlParams.get('token');
     if(editId && token){
-      const newName = prompt('Update your name (leave blank to skip):');
-      const newEmail = prompt('Update your email (leave blank to skip):');
-      const newPhone = prompt('Update your phone (leave blank to skip):');
-      const body = {action:'edit', signup_id: editId, token};
-      if(newName) body.name = newName; if(newEmail) body.email = newEmail; if(newPhone) body.phone = newPhone;
-      apiPost(body).then(()=>refresh());
-      const cancel = confirm('Do you also want to cancel your sign-up?');
-      if(cancel){ apiPost({action:'cancel', signup_id: editId, token}).then(()=>refresh()); }
+      const cancel = confirm('Do you want to cancel your sign-up?');
+      if(cancel){
+        apiPost({action:'cancel', signup_id: editId, token})
+          .then(()=>refresh());
+      }
     }
 
     function generateICS(ev){
