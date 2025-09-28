@@ -35,7 +35,21 @@
     .capacity{font-size:13px; color:var(--muted)}
     .adminbar{position:sticky; top:0; background:#111; color:white; padding:8px var(--pad)}
     .hide{display:none}
+    #rosterList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      /* font-size: clamp(14px, 4vw, 18px); /* scales with viewport */ 
+    }
+    #rosterList li {
+      /* padding: 6px 0; */
+      /* line-height: 1.4; */
+    }
+    #rosterList li.not-active {
+      text-decoration: line-through;
+      opacity: 0.6 }
   </style>
+  
 </head>
 <body>
   <header>
@@ -59,26 +73,6 @@
     </div>
 
 </main>
-
-<style>
-  /* Vertical list, responsive font size */
-  #rosterList {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    font-size: clamp(14px, 4vw, 18px); /* scales with viewport */
-  }
-
-  #rosterList li {
-    padding: 6px 0;
-    line-height: 1.4;
-  }
-
-  #rosterList li.not-active {
-    text-decoration: line-through;
-    opacity: 0.6;
-  }
-</style>
 
 <script>
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec?type=roster';
