@@ -114,7 +114,49 @@
       document.getElementById('subscribeModal').classList.add('hide');
       document.getElementById('subscribeNotice').textContent = '';
       document.getElementById('subscribeForm').reset();
-      fetchRoster();
+
+    async function fetchRoster() {
+      try {
+        const res = await fetch(ROSTER_URL);
+        const data = await res.json();
+    
+        const rosterList = document.getElementById('rosterList');
+        rosterList.innerHTML = '';
+    
+        if (!data.ok || !data.roster) {
+          rosterList.innerHTML = '<li style="color:red;">Failed to load roster.</li>';
+          return;
+        }
+    
+        // Sort alphabetically by last name, then first name
+        data.roster.sort((a, b) => {
+          const lastA = (a['Last Name'] || '').toLowerCase();
+          const lastB = (b['Last Name'] || '').toLowerCase();
+          if (lastA < lastB) return -1;
+          if (lastA > lastB) return 1;
+          const firstA = (a['First Name'] || '').toLowerCase();
+          const firstB = (b['First Name'] || '').toLowerCase();
+          return firstA.localeCompare(firstB);
+        });
+    
+        data.roster.forEach(member => {
+          const firstName = member['First Name'] || '';
+          const lastName = member['Last Name'] || '';
+          const status = member['status'] || 'Active';
+    
+          const li = document.createElement('li');
+          li.textContent = `${firstName} ${lastName}`;
+          if (status.toLowerCase() === 'not active') li.classList.add('not-active');
+    
+          rosterList.appendChild(li);
+        });
+    
+      } catch (err) {
+        console.error(err);
+        rosterList.innerHTML = '<li style="color:red;">Error fetching roster.</li>';
+      }
+    }
+     
     });
   
     document.getElementById('subscribeForm').addEventListener('submit', async (e) => {
