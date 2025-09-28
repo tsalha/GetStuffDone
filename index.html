@@ -173,7 +173,7 @@
         //   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
         // });
 
-        <button id="iCalButton">Add to Calendar (Outlook, Apple, iCal)</button>
+        <button id="iCalButton">iCal</button>
         document.querySelector('#iCalButton').addEventListener('click', () => {
           const ics = generateICS(ev); // your existing ICS generator
           const blob = new Blob([ics], { type: 'text/calendar' });
