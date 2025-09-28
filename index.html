@@ -171,47 +171,6 @@
 // Container where buttons will go
 const btnContainer = node.querySelector('div');
 
-// --- Google Calendar Button ---
-          const gcalBtn = document.createElement('button');
-          gcalBtn.className = 'btn primary';
-          gcalBtn.textContent = 'Add to Google Calendar';
-          btnContainer.appendChild(gcalBtn);
-
-          node.querySelector('.ics').addEventListener('click', () => {
-          const title = encodeURIComponent(ev.title);
-          const details = encodeURIComponent(ev.description || '');
-          const location = encodeURIComponent(ev.location || '');
-        
-          // Helper: build Google Calendar date string
-          function toGCalDate(dateStr, timeStr) {
-            // If time is missing, use 00:00 for start, 23:59 for end
-            const time = timeStr || '00:00';
-            const [h, m] = time.split(':').map(Number);
-            const date = new Date(dateStr);
-            if (isNaN(date)) return null;
-            date.setHours(h, m, 0, 0);
-            return date.toISOString().replace(/-|:|\.\d+/g,'') + 'Z';
-          }
-        
-          const start = toGCalDate(ev.date_iso, ev.start_time);
-          const end = ev.end_time ? toGCalDate(ev.date_iso, ev.end_time) : start;
-        
-          if (!start || !end) {
-            alert('Invalid event date/time');
-            return;
-          }
-        
-          const gcalURL = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&location=${location}`;
-        
-          window.open(gcalURL, '_blank');
-        }););
-
-// --- iPhone Calendar Button ---
-const iosBtn = document.createElement('button');
-iosBtn.className = 'btn';
-iosBtn.textContent = 'Add to iPhone Calendar';
-btnContainer.appendChild(iosBtn);
-
         node.querySelector('.ics').addEventListener('click', ()=>{
           const ics = generateICS(ev);
           const blob = new Blob([ics], {type:'text/calendar'});
