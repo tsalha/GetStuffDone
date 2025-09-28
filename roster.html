@@ -88,11 +88,58 @@
 </main>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec?type=roster';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec';
+    const ROSTER_URL = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec?type=roster';  
+  
+    //Subscribe
+    document.getElementById('openSubscribe').addEventListener('click', e => {
+      e.preventDefault();
+      document.getElementById('subscribeModal').classList.remove('hide');
+    });
+  
+    document.getElementById('closeModal').addEventListener('click', () => {
+      document.getElementById('subscribeModal').classList.add('hide');
+      document.getElementById('subscribeNotice').textContent = '';
+      document.getElementById('subscribeForm').reset();
+    });
+  
+    document.getElementById('subscribeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        action: 'add_roster', // we’ll handle this in Apps Script
+        firstName: form.firstName.value.trim(),
+        lastName: form.lastName.value.trim(),
+        email: form.email.value.trim(),
+        phone: form.phone.value.trim(),
+        status: 'Active'
+      };
+  
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+  
+        if (result.ok) {
+          document.getElementById('subscribeNotice').textContent = 'Successfully added!';
+          form.reset();
+          fetchRoster(); // refresh roster list
+        } else {
+          document.getElementById('subscribeNotice').textContent = 'Error: ' + (result.error || 'unknown');
+        }
+  
+      } catch (err) {
+        console.error(err);
+        document.getElementById('subscribeNotice').textContent = 'Error submitting form.';
+      }
+    });
 
+  // Generate Roster
   async function fetchRoster() {
     try {
-      const res = await fetch(SCRIPT_URL);
+      const res = await fetch(ROSTER_URL);
       const data = await res.json();
 
       const rosterList = document.getElementById('rosterList');
