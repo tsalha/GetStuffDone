@@ -180,9 +180,9 @@
             const lastB = (b['Last Name'] || '').toLowerCase();
             return lastA.localeCompare(lastB);
           });
-          data.roster.forEach((member, idx) => {
+          data.roster.forEach(member => {
             const option = document.createElement('option');
-            option.value = idx; 
+            option.value = member.email || `${member['First Name']}-${member['Last Name']}`; 
             option.textContent = `${member['First Name']} ${member['Last Name']}`;
             select.appendChild(option);
           });
@@ -205,16 +205,17 @@
       try {
         const rosterRes = await fetch(ROSTER_URL);
         const rosterData = await rosterRes.json();
-        const member = rosterData.roster[memberIndex];
+        const selectedEmail = select.value;
+        const member = rosterData.roster.find(m => (m.email || `${m['First Name']}-${m['Last Name']}`) === selectedEmail);
     
         const res = await fetch(SCRIPT_URL, {
           method: 'POST',
           body: JSON.stringify({
-            action: 'update_roster', // you’ll handle this in Apps Script
+            action: 'update_roster',
             firstName: member['First Name'],
             lastName: member['Last Name'],
-            email: member['email'] || '',
-            phone: member['phone'] || '',
+            email: member.email || '',
+            phone: member.phone || '',
             status: 'Not Active'
           })
         });
