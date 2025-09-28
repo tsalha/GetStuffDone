@@ -72,7 +72,7 @@
 
   <div style="margin-top: 20px;">
     <a href="#" id="openSubscribe" class="btn">Subscribe (or subscribe a friend)</a>
-    <a href="#" class="btn">Unsubscribe</a>
+    <a href="#" id="openUnsubscribe" class="btn">Unsubscribe</a>
   </div>
 
     <main class="wrap" style="margin-top: 24px;">
@@ -166,12 +166,12 @@
     });
 
     // Unsubscribe
-    document.querySelector('.btn[href="#"]').addEventListener('click', e => {
+    document.getElementById('openUnsubscribe').addEventListener('click', e => {
       e.preventDefault();
       const unsubscribeModal = document.getElementById('unsubscribeModal');
       const select = document.getElementById('unsubscribeSelect');
       select.innerHTML = '<option value="">Select a member</option>';
-      
+    
       fetch(ROSTER_URL)
         .then(res => res.json())
         .then(data => {
@@ -184,7 +184,7 @@
           });
           data.roster.forEach((member, idx) => {
             const option = document.createElement('option');
-            option.value = idx; // we'll use index as identifier for simplicity
+            option.value = idx; 
             option.textContent = `${member['First Name']} ${member['Last Name']}`;
             select.appendChild(option);
           });
