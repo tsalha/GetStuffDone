@@ -167,59 +167,11 @@
         });
 
         // ICS download
-        // node.querySelector('.ics').addEventListener('click', ()=>{
-        //   const ics = generateICS(ev);
-        //   const blob = new Blob([ics], {type:'text/calendar'});
-        //   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
-        // });
-
-
-        <!-- Your custom button -->
-        <button id="iCalButton">Save Event</button>
-        
-        <!-- Your JavaScript must go inside a script tag -->
-        <script>
-          document.querySelector('#iCalButton').addEventListener('click', () => {
-            const ics = generateICS(ev); // your existing ICS generator
-            const blob = new Blob([ics], { type: 'text/calendar' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `${ev.title}.ics`;
-            a.click();
-          });
-        </script>
-
-       
-        //GOOGLE CALENDAR - WORKING
-        // node.querySelector('.ics').addEventListener('click', () => {
-        //   const title = encodeURIComponent(ev.title);
-        //   const details = encodeURIComponent(ev.description || '');
-        //   const location = encodeURIComponent(ev.location || '');
-        
-        //   // Helper: build Google Calendar date string
-        //   function toGCalDate(dateStr, timeStr) {
-        //     // If time is missing, use 00:00 for start, 23:59 for end
-        //     const time = timeStr || '00:00';
-        //     const [h, m] = time.split(':').map(Number);
-        //     const date = new Date(dateStr);
-        //     if (isNaN(date)) return null;
-        //     date.setHours(h, m, 0, 0);
-        //     return date.toISOString().replace(/-|:|\.\d+/g,'') + 'Z';
-        //   }
-        
-        //   const start = toGCalDate(ev.date_iso, ev.start_time);
-        //   const end = ev.end_time ? toGCalDate(ev.date_iso, ev.end_time) : start;
-        
-        //   if (!start || !end) {
-        //     alert('Invalid event date/time');
-        //     return;
-        //   }
-        
-        //   const gcalURL = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&location=${location}`;
-        
-        //   window.open(gcalURL, '_blank');
-        // });
-
+        node.querySelector('.ics').addEventListener('click', ()=>{
+          const ics = generateICS(ev);
+          const blob = new Blob([ics], {type:'text/calendar'});
+          const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
+        });
       
         listEl.appendChild(node);
       });
