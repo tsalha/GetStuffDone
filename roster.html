@@ -116,7 +116,9 @@
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec';
     const ROSTER_URL = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec?type=roster';  
-  
+
+    let cachedRoster = null;
+ 
     //Subscribe
     document.getElementById('openSubscribe').addEventListener('click', e => {
       e.preventDefault();
@@ -163,6 +165,22 @@
       }
     });
 
+    // Helper: populate unsubscrive dropdown
+    function populateUnsubscribeDropdown(roster, select) {
+      const sorted = [...roster].sort((a, b) => {
+        const lastA = (a['Last Name'] || '').toLowerCase();
+        const lastB = (b['Last Name'] || '').toLowerCase();
+        return lastA.localeCompare(lastB);
+      });
+    
+      sorted.forEach(member => {
+        const option = document.createElement('option');
+        option.value = member.email || `${member['First Name']}-${member['Last Name']}`;
+        option.textContent = `${member['First Name']} ${member['Last Name']}`;
+        select.appendChild(option);
+      });
+    }
+
     // Unsubscribe
     document.getElementById('openUnsubscribe').addEventListener('click', e => {
       e.preventDefault();
@@ -170,28 +188,22 @@
       const select = document.getElementById('unsubscribeSelect');
       select.innerHTML = '<option value="">Select a member</option>';
     
-      fetch(ROSTER_URL)
-        .then(res => res.json())
-        .then(data => {
-          if (!data.ok || !data.roster) return;
-          // Sort roster alphabetically
-          data.roster.sort((a, b) => {
-            const lastA = (a['Last Name'] || '').toLowerCase();
-            const lastB = (b['Last Name'] || '').toLowerCase();
-            return lastA.localeCompare(lastB);
+      if (cachedRoster) {
+        populateUnsubscribeDropdown(cachedRoster, select);
+        unsubscribeModal.classList.remove('hide');
+      } else {
+        fetch(ROSTER_URL)
+          .then(res => res.json())
+          .then(data => {
+            if (!data.ok || !data.roster) return;
+            cachedRoster = data.roster;
+            populateUnsubscribeDropdown(cachedRoster, select);
+            unsubscribeModal.classList.remove('hide');
           });
-          data.roster.forEach(member => {
-            const option = document.createElement('option');
-            option.value = member.email || `${member['First Name']}-${member['Last Name']}`; 
-            option.textContent = `${member['First Name']} ${member['Last Name']}`;
-            select.appendChild(option);
-          });
-        });
-    
-      unsubscribeModal.classList.remove('hide');
+      }
     });
     
-    document.getElementById('closeUnsubModal').addEventListener('click', () => {
+      document.getElementById('closeUnsubModal').addEventListener('click', () => {
       document.getElementById('unsubscribeModal').classList.add('hide');
       document.getElementById('unsubscribeNotice').textContent = '';
     });
@@ -248,7 +260,7 @@
         rosterList.innerHTML = '<li style="color:red;">Failed to load roster.</li>';
         return;
       }
-
+      cachedRoster = data.roster;
       data.roster.forEach(member => {
         const firstName = member['First Name'] || '';
         const lastName = member['Last Name'] || '';
