@@ -181,7 +181,7 @@
     async function refresh(){
       try{ const data = await apiGet(); if(data.ok) render(data.events); }catch(e){}
     }
-    
+    refresh();
     setInterval(refresh, 3000);
 
     //1:05 ADD
