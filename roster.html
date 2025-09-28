@@ -62,8 +62,7 @@
 
 <!-- Roster Container -->
 <div id="rosterContainer" style="margin-top: 32px;">
-  <h2>Committee Members</h2>
-  <div id="rosterList" class="grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));"></div>
+  <ul id="rosterList" style="list-style:none; padding:0; margin:0;"></ul>
 </div>
 
 <script>
@@ -76,35 +75,31 @@
       const data = await res.json();
 
       if (!data.ok || !data.roster) {
-        document.getElementById('rosterList').innerHTML = '<p style="color:red;">Failed to load roster.</p>';
+        document.getElementById('rosterList').innerHTML = '<li style="color:red;">Failed to load roster.</li>';
         return;
       }
 
       const rosterList = document.getElementById('rosterList');
-      rosterList.innerHTML = ''; // clear previous content
+      rosterList.innerHTML = '';
 
       data.roster.forEach(member => {
-        const firstName = member['First Name'] || member['FirstName'] || '';
-        const lastName = member['Last Name'] || member['LastName'] || '';
+        const firstName = member['First Name'] || '';
+        const lastName = member['Last Name'] || '';
 
-        const card = document.createElement('div');
-        card.className = 'event'; // reuse your card style
-        card.innerHTML = `
-          <p>${firstName} ${lastName}</p>
-        `;
-        rosterList.appendChild(card);
+        const li = document.createElement('li');
+        li.textContent = `${firstName} ${lastName}`;
+        li.style.padding = '6px 0';
+        rosterList.appendChild(li);
       });
 
     } catch (err) {
       console.error(err);
-      document.getElementById('rosterList').innerHTML = '<p style="color:red;">Error fetching roster.</p>';
+      document.getElementById('rosterList').innerHTML = '<li style="color:red;">Error fetching roster.</li>';
     }
   }
 
-  // Load roster on page load
   fetchRoster();
 </script>
-
 
   <footer>
     <div class="wrap">
