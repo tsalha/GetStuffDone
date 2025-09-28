@@ -167,12 +167,22 @@
         });
 
         // ICS download
-        node.querySelector('.ics').addEventListener('click', ()=>{
-          const ics = generateICS(ev);
-          const blob = new Blob([ics], {type:'text/calendar'});
-          const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
-        });
+        // node.querySelector('.ics').addEventListener('click', ()=>{
+        //   const ics = generateICS(ev);
+        //   const blob = new Blob([ics], {type:'text/calendar'});
+        //   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
+        // });
 
+        <button id="iCalButton">Add to Calendar (Outlook, Apple, iCal)</button>
+        document.querySelector('#iCalButton').addEventListener('click', () => {
+          const ics = generateICS(ev); // your existing ICS generator
+          const blob = new Blob([ics], { type: 'text/calendar' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `${ev.title}.ics`;
+          a.click();
+        });
+       
         //GOOGLE CALENDAR - WORKING
         // node.querySelector('.ics').addEventListener('click', () => {
         //   const title = encodeURIComponent(ev.title);
