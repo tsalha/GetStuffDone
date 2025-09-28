@@ -66,7 +66,6 @@
 </div>
 
 <script>
-  // Replace with your Apps Script deployment URL
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec?type=roster';
 
   async function fetchRoster() {
@@ -85,10 +84,17 @@
       data.roster.forEach(member => {
         const firstName = member['First Name'] || '';
         const lastName = member['Last Name'] || '';
+        const status = member['status'] || 'Active';
 
         const li = document.createElement('li');
         li.textContent = `${firstName} ${lastName}`;
         li.style.padding = '6px 0';
+
+        if (status.toLowerCase() === 'not active') {
+          li.style.textDecoration = 'line-through';
+          li.style.opacity = '0.6';
+        }
+
         rosterList.appendChild(li);
       });
 
