@@ -62,8 +62,27 @@
 
 <!-- Roster Container -->
 <div id="rosterContainer" style="margin-top: 32px;">
-  <ul id="rosterList" style="list-style:none; padding:0; margin:0;"></ul>
+  <ul id="rosterList"></ul>
 </div>
+
+<style>
+  #rosterList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: clamp(14px, 2vw, 18px); /* min 14px, max 18px, scales with viewport */
+  }
+
+  #rosterList li {
+    padding: 6px 0;
+    line-height: 1.4;
+  }
+
+  #rosterList li.not-active {
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
+</style>
 
 <script>
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec?type=roster';
@@ -73,13 +92,13 @@
       const res = await fetch(SCRIPT_URL);
       const data = await res.json();
 
-      if (!data.ok || !data.roster) {
-        document.getElementById('rosterList').innerHTML = '<li style="color:red;">Failed to load roster.</li>';
-        return;
-      }
-
       const rosterList = document.getElementById('rosterList');
       rosterList.innerHTML = '';
+
+      if (!data.ok || !data.roster) {
+        rosterList.innerHTML = '<li style="color:red;">Failed to load roster.</li>';
+        return;
+      }
 
       data.roster.forEach(member => {
         const firstName = member['First Name'] || '';
@@ -88,12 +107,7 @@
 
         const li = document.createElement('li');
         li.textContent = `${firstName} ${lastName}`;
-        li.style.padding = '6px 0';
-
-        if (status.toLowerCase() === 'not active') {
-          li.style.textDecoration = 'line-through';
-          li.style.opacity = '0.6';
-        }
+        if (status.toLowerCase() === 'not active') li.classList.add('not-active');
 
         rosterList.appendChild(li);
       });
@@ -106,6 +120,7 @@
 
   fetchRoster();
 </script>
+
 
   <footer>
     <div class="wrap">
