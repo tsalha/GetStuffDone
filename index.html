@@ -173,15 +173,22 @@
         //   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
         // });
 
-        <button id="iCalButton">iCal</button>
-        document.querySelector('#iCalButton').addEventListener('click', () => {
-          const ics = generateICS(ev); // your existing ICS generator
-          const blob = new Blob([ics], { type: 'text/calendar' });
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(blob);
-          a.download = `${ev.title}.ics`;
-          a.click();
-        });
+
+        <!-- Your custom button -->
+        <button id="iCalButton">Save Event</button>
+        
+        <!-- Your JavaScript must go inside a script tag -->
+        <script>
+          document.querySelector('#iCalButton').addEventListener('click', () => {
+            const ics = generateICS(ev); // your existing ICS generator
+            const blob = new Blob([ics], { type: 'text/calendar' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${ev.title}.ics`;
+            a.click();
+          });
+        </script>
+
        
         //GOOGLE CALENDAR - WORKING
         // node.querySelector('.ics').addEventListener('click', () => {
