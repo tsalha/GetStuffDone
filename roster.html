@@ -261,16 +261,22 @@
         return;
       }
       cachedRoster = data.roster;
-      data.roster.forEach(member => {
-        const firstName = member['First Name'] || '';
-        const lastName = member['Last Name'] || '';
-        const status = member['status'] || 'Active';
+      const sortedRoster = [...data.roster].sort((a, b) => {
+      const lastA = (a['Last Name'] || '').toLowerCase();
+      const lastB = (b['Last Name'] || '').toLowerCase();
+      return lastA.localeCompare(lastB);
+    });
 
-        const li = document.createElement('li');
-        li.textContent = `${firstName} ${lastName}`;
-        if (status.toLowerCase() === 'not active') li.classList.add('not-active');
+      sortedRoster.forEach(member => {
+      const firstName = member['First Name'] || '';
+      const lastName = member['Last Name'] || '';
+      const status = member['status'] || 'Active';
 
-        rosterList.appendChild(li);
+      const li = document.createElement('li');
+      li.textContent = `${firstName} ${lastName}`;
+      if (status.toLowerCase() === 'not active') li.classList.add('not-active');
+
+      rosterList.appendChild(li);
       });
 
     } catch (err) {
