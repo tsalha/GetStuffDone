@@ -46,17 +46,63 @@
   </header>
 
   <main class="wrap" style="margin-top: 24px;">
-    <h2>Subscribe or Unsubscribe</h2>
-    <p>
-      Use this page to manage your subscription to the volunteer roster.
-    </p>
 
-    <!-- Example button links -->
     <div style="margin-top: 20px;">
       <a href="#" class="btn">Subscribe (or subscribe a friend)</a>
       <a href="#" class="btn">Unsubscribe</a>
     </div>
-  </main>
+    <main class="wrap" style="margin-top: 24px;">
+
+  <div style="margin-top: 20px;">
+    <a href="#" class="btn">Subscribe (or subscribe a friend)</a>
+    <a href="#" class="btn">Unsubscribe</a>
+  </div>
+
+  <!-- Roster Container -->
+  <div id="rosterContainer" style="margin-top: 32px;">
+    <h2>Committee Members</h2>
+    <div id="rosterList" class="grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));"></div>
+  </div>
+
+</main>
+
+<script>
+  // Replace with your Apps Script deployment URL
+  const SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec?type=roster';
+
+  async function fetchRoster() {
+    try {
+      const res = await fetch(SCRIPT_URL);
+      const data = await res.json();
+
+      if (!data.ok || !data.roster) {
+        document.getElementById('rosterList').innerHTML = '<p style="color:red;">Failed to load roster.</p>';
+        return;
+      }
+
+      const rosterList = document.getElementById('rosterList');
+      rosterList.innerHTML = ''; // clear any previous content
+
+      data.roster.forEach(member => {
+        const card = document.createElement('div');
+        card.className = 'event'; // reusing your existing card style
+        card.innerHTML = `
+          <h3>${member.Name || member.name || 'Unnamed'}</h3>
+          <p><strong>Role:</strong> ${member.Role || member.role || 'Member'}</p>
+          ${member.Email ? `<p><strong>Email:</strong> <a href="mailto:${member.Email}">${member.Email}</a></p>` : ''}
+        `;
+        rosterList.appendChild(card);
+      });
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById('rosterList').innerHTML = '<p style="color:red;">Error fetching roster.</p>';
+    }
+  }
+
+  // Load roster on page load
+  fetchRoster();
+</script>
 
   <footer>
     <div class="wrap">
