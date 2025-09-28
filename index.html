@@ -167,16 +167,11 @@
         });
 
         // ICS download
-
-// Container where buttons will go
-const btnContainer = node.querySelector('div');
-
         node.querySelector('.ics').addEventListener('click', ()=>{
           const ics = generateICS(ev);
           const blob = new Blob([ics], {type:'text/calendar'});
           const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
         });
-      );
 
         //GOOGLE CALENDAR - WORKING
         // node.querySelector('.ics').addEventListener('click', () => {
