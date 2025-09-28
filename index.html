@@ -166,12 +166,25 @@
           }
         });
 
-        // ICS download
-        node.querySelector('.ics').addEventListener('click', ()=>{
-          const ics = generateICS(ev);
-          const blob = new Blob([ics], {type:'text/calendar'});
-          const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
-        });
+// ICS add-to-calendar for iOS/desktop
+node.querySelector('.ics').addEventListener('click', ()=>{
+  const ics = generateICS(ev);
+  const blob = new Blob([ics], {type:'text/calendar'});
+
+  // iOS recognizes direct navigation to the .ics Blob
+  const url = URL.createObjectURL(blob);
+  window.location.href = url;
+
+  // Optional: revoke the URL after a short delay
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+});
+        
+        // // ICS download
+        // node.querySelector('.ics').addEventListener('click', ()=>{
+        //   const ics = generateICS(ev);
+        //   const blob = new Blob([ics], {type:'text/calendar'});
+        //   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
+        // });
       
         listEl.appendChild(node);
       });
