@@ -35,3 +35,25 @@
       height: 100px;        
       width: auto;         
       }  
+#rosterList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-size: clamp(10px, 4vw, 14px); 
+    }
+    #rosterList li.not-active {
+      text-decoration: line-through;
+      opacity: 0.6 }
+      #subscribeModal.hide {
+    display: none;
+  }
+  #subscribeModal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;              /* only applied when .hide is removed */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
