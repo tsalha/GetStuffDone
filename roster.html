@@ -114,6 +114,7 @@
       document.getElementById('subscribeModal').classList.add('hide');
       document.getElementById('subscribeNotice').textContent = '';
       document.getElementById('subscribeForm').reset();
+      fetchRoster();
     });
   
     document.getElementById('subscribeForm').addEventListener('submit', async (e) => {
