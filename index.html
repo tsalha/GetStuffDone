@@ -167,12 +167,27 @@
         });
 
         // ICS download
-        node.querySelector('.ics').addEventListener('click', ()=>{
-          const ics = generateICS(ev);
-          const blob = new Blob([ics], {type:'text/calendar'});
-          const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
-        });
+        // node.querySelector('.ics').addEventListener('click', ()=>{
+        //   const ics = generateICS(ev);
+        //   const blob = new Blob([ics], {type:'text/calendar'});
+        //   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
+        // });
 
+          node.querySelector('.ics').addEventListener('click', () => {
+            const title = encodeURIComponent(ev.title);
+            const start = encodeURIComponent(ev.start.toISOString().replace(/-|:|\.\d+/g, ''));
+            const end = encodeURIComponent(ev.end.toISOString().replace(/-|:|\.\d+/g, ''));
+            const details = encodeURIComponent(ev.description || '');
+            const location = encodeURIComponent(ev.location || '');
+          
+            // Google Calendar URL format
+            const gcalURL = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&location=${location}`;
+          
+            // Open in new tab
+            window.open(gcalURL, '_blank');
+          });
+
+        
         listEl.appendChild(node);
       });
     }
