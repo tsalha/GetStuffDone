@@ -89,9 +89,7 @@
         <div class="token-area hide notice"></div>
       </details>
       <div style="margin-top:8px">
-        <button class="btn gcal">Add to Google Calendar</button>
-        <button class="btn ical">Add to Apple Calendar</button>
-        <!-- <button class="btn ics">Add to Calendar</button> -->
+        <button class="btn ics">Add to Calendar</button>
       </div>
     </article>
   </template>
@@ -99,8 +97,6 @@
   <script>
     const API_BASE = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec'; // e.g., https://script.google.com/macros/s/AKfycb.../exec
     const ADMIN_SECRET = 'STCHRIS'; // also set in Apps Script script properties
-    const ics = generateICS(ev); // use your existing generateICS function
-    const appleUrl = `data:text/calendar;charset=utf8,${encodeURIComponent(ics)}`;
 
     // Admin toggle via ?admin=SECRET
     const urlParams = new URLSearchParams(location.search);
@@ -169,20 +165,13 @@
             const chip = document.createElement('span'); chip.className='name'; chip.textContent=payload.name; names.appendChild(chip);
           }
         });
-
-// Apple/iOS Calendar
-node.querySelector('.ical').addEventListener('click', ()=>{
-  const ics = generateICS(ev);
-  const appleUrl = `data:text/calendar;charset=utf8,${encodeURIComponent(ics)}`;
-  window.location.href = appleUrl;
-});
-        
-        // // ICS download
-        // node.querySelector('.ics').addEventListener('click', ()=>{
-        //   const ics = generateICS(ev);
-        //   const blob = new Blob([ics], {type:'text/calendar'});
-        //   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
-        // });
+     
+        // ICS download
+        node.querySelector('.ics').addEventListener('click', ()=>{
+          const ics = generateICS(ev);
+          const blob = new Blob([ics], {type:'text/calendar'});
+          const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
+        });
       
         listEl.appendChild(node);
       });
