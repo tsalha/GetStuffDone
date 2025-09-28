@@ -167,11 +167,11 @@
         });
 
         // ICS download
-        // node.querySelector('.ics').addEventListener('click', ()=>{
-        //   const ics = generateICS(ev);
-        //   const blob = new Blob([ics], {type:'text/calendar'});
-        //   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
-        // });
+        node.querySelector('.ics').addEventListener('click', ()=>{
+          const ics = generateICS(ev);
+          const blob = new Blob([ics], {type:'text/calendar'});
+          const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
+        });
 
         node.querySelector('.ics').addEventListener('click', () => {
           const title = encodeURIComponent(ev.title);
