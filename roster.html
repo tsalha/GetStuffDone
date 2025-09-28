@@ -66,11 +66,12 @@
 </div>
 
 <style>
+  /* Vertical list, responsive font size */
   #rosterList {
     list-style: none;
     padding: 0;
     margin: 0;
-    font-size: clamp(14px, 2vw, 18px); /* min 14px, max 18px, scales with viewport */
+    font-size: clamp(14px, 4vw, 18px); /* scales with viewport */
   }
 
   #rosterList li {
@@ -121,8 +122,7 @@
   fetchRoster();
 </script>
 
-
-  <footer>
+    <footer>
     <div class="wrap">
       <p>&copy; Get Stuff Done Committee</p>
     </div>
