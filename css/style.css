@@ -59,3 +59,9 @@
     align-items: center;
     z-index: 1000;
   }
+  #loading {
+    text-align: center;
+    font-size: 1.2em;
+    margin: 2em 0;
+    color: var(--muted, #555);
+  }
