@@ -42,7 +42,8 @@
   </div>
 
   <main class="wrap">
-    <section id="events"></section>
+    <div id="loading">Loading events, please wait…</div>
+    <section id="events" style="display:none;"></section>
   </main>
 
   <template id="event-tpl">
@@ -107,6 +108,8 @@
     }
 
     function render(events){
+      document.getElementById('loading').style.display = 'none'; // hide loading
+      listEl.style.display = 'block'; // show events
       listEl.innerHTML = '';
       events.forEach(ev=>{
         const node = tpl.content.cloneNode(true);
