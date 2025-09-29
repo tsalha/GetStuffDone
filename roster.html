@@ -61,7 +61,8 @@
       
     <!-- Roster Container -->
     <div id="rosterContainer" style="margin-top: 24px;">
-      <ul id="rosterList"></ul>
+      <div id="loading">Loading roster, please wait…</div>
+      <ul id="rosterList" style="display:none;"></ul>
     </div>
 
 </main>
@@ -202,15 +203,20 @@
   
   // Generate Roster
   async function fetchRoster() {
+    const loadingEl = document.getElementById('loading');
+    const rosterList = document.getElementById('rosterList');
+  
+    // Show loading, hide list
+    loadingEl.style.display = 'block';
+    rosterList.style.display = 'none';
+    rosterList.innerHTML = '';
+    
     try {
       const res = await fetch(ROSTER_URL);
       const data = await res.json();
 
-      const rosterList = document.getElementById('rosterList');
-      rosterList.innerHTML = '';
-
       if (!data.ok || !data.roster) {
-        rosterList.innerHTML = '<li style="color:red;">Failed to load roster.</li>';
+            loadingEl.textContent = 'Failed to load roster.';  
         return;
       }
       cachedRoster = data.roster;
@@ -219,7 +225,11 @@
       const lastB = (b['Last Name'] || '').toLowerCase();
       return lastA.localeCompare(lastB);
     });
-
+  
+      // Hide loading, show list
+      loadingEl.style.display = 'none';
+      rosterList.style.display = 'block';
+      
       sortedRoster.forEach(member => {
       const firstName = member['First Name'] || '';
       const lastName = member['Last Name'] || '';
