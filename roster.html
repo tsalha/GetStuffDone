@@ -89,6 +89,14 @@
     document.getElementById('subscribeForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
+
+      //New
+      const notice = document.getElementById('subscribeNotice'); 
+      const submitBtn = form.querySelector('button[type="submit"]'); 
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Processing...';
+      notice.textContent = 'Submitting, please wait…';
+      
       const data = {
         action: 'add_roster', // we’ll handle this in Apps Script
         firstName: form.firstName.value.trim(),
@@ -106,17 +114,22 @@
         const result = await res.json();
   
         if (result.ok) {
-          document.getElementById('subscribeNotice').textContent = 'Successfully added!';
+          notice.textContent = '✅ Successfully added!';
+          //document.getElementById('subscribeNotice').textContent = 'Successfully added!';
           form.reset();
-          fetchRoster(); // refresh roster list
+          fetchRoster(); 
         } else {
-          document.getElementById('subscribeNotice').textContent = 'Error: ' + (result.error || 'unknown');
+          notice.textContent = '❌ Error: ' + (result.error || 'unknown');
+          //document.getElementById('subscribeNotice').textContent = 'Error: ' + (result.error || 'unknown');
         }
-  
-      } catch (err) {
-        console.error(err);
-        document.getElementById('subscribeNotice').textContent = 'Error submitting form.';
-      }
+        catch (err) {
+          console.error(err);
+          //document.getElementById('subscribeNotice').textContent = 'Error submitting form.';
+          notice.textContent = '❌ Error submitting form.';
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit';
+        }
     });
 
     // Helper: populate unsubscrive dropdown
