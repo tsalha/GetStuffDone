@@ -31,23 +31,19 @@
     </div>
   </header>
 
-  <main class="wrap">
+<main class="wrap">
     <h2>Photo Gallery</h2>
-    <div id="gallery" class="gallery"></div>
-  </main>
+    <div class="gallery">
+      <?php
+        // Get all images in /pics
+        $images = glob("pics/*.{jpg,jpeg,png,gif}", GLOB_BRACE);
 
-  <script>
-    // Adjust if you have different extensions
-    const imageCount = 10; // how many pics you expect
-    const gallery = document.getElementById("gallery");
-  
-    for (let i = 1; i <= imageCount; i++) {
-      let img = document.createElement("img");
-      img.src = `pics/photo${i}.jpg`; // expects photo1.jpg, photo2.jpg, etc.
-      img.alt = `Photo ${i}`;
-      gallery.appendChild(img);
-    }
-  </script>
+        foreach($images as $img){
+          echo "<img src='$img' alt='Gallery image'>";
+        }
+      ?>
+    </div>
+  </main>
 
 </body>
 </html>
