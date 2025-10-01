@@ -89,8 +89,6 @@
     document.getElementById('subscribeForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
-
-      //New
       const notice = document.getElementById('subscribeNotice'); 
       const submitBtn = form.querySelector('button[type="submit"]'); 
       submitBtn.disabled = true;
@@ -136,73 +134,116 @@
         }
     });
 
-    // Helper: populate unsubscrive dropdown
-    function populateUnsubscribeDropdown(roster, select) {
-      const sorted = [...roster].sort((a, b) => {
-        const lastA = (a['Last Name'] || '').toLowerCase();
-        const lastB = (b['Last Name'] || '').toLowerCase();
-        return lastA.localeCompare(lastB);
+    // Helper: populate unsubscribe dropdown
+function populateUnsubscribeDropdown(roster, select) {
+  select.innerHTML = '<option value="">Select a member</option>'; // reset
+  const sorted = [...roster].sort((a, b) => {
+    const lastA = (a['Last Name'] || '').toLowerCase();
+    const lastB = (b['Last Name'] || '').toLowerCase();
+    return lastA.localeCompare(lastB);
+  });
+
+  sorted.forEach(member => {
+    const option = document.createElement('option');
+    // use email as the option value when available (keeps it unique)
+    option.value = member.email || `${member['First Name']}-${member['Last Name']}`;
+    option.textContent = `${member['First Name']} ${member['Last Name']}`;
+    select.appendChild(option);
+  });
+}
+
+// Open Unsubscribe modal (populate select first)
+document.getElementById('openUnsubscribe').addEventListener('click', e => {
+  e.preventDefault();
+  const unsubscribeModal = document.getElementById('unsubscribeModal');
+  const select = document.getElementById('unsubscribeSelect');
+  document.getElementById('unsubscribeNotice').textContent = '';
+
+  // If we already have cached roster use it, otherwise fetch
+  if (cachedRoster) {
+    populateUnsubscribeDropdown(cachedRoster, select);
+    unsubscribeModal.classList.remove('hide');
+  } else {
+    fetch(ROSTER_URL)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.ok || !data.roster) {
+          document.getElementById('unsubscribeNotice').textContent = 'Error loading roster.';
+          return;
+        }
+        cachedRoster = data.roster;
+        populateUnsubscribeDropdown(cachedRoster, select);
+        unsubscribeModal.classList.remove('hide');
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById('unsubscribeNotice').textContent = 'Error loading roster.';
       });
-    
-      sorted.forEach(member => {
-        const option = document.createElement('option');
-        option.value = member.email || `${member['First Name']}-${member['Last Name']}`;
-        option.textContent = `${member['First Name']} ${member['Last Name']}`;
-        select.appendChild(option);
-      });
+  }
+});
+
+// Unsubscribe form submit (single handler, validated before disabling button)
+document.getElementById('unsubscribeForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const form = e.target;
+  const select = document.getElementById('unsubscribeSelect');
+  const notice = document.getElementById('unsubscribeNotice');
+  const memberValue = select.value;
+
+  // Validate selection BEFORE disabling UI
+  if (!memberValue) {
+    notice.textContent = 'Please choose a member to unsubscribe.';
+    return;
+  }
+
+  const submitBtn = form.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Processing...';
+  notice.textContent = 'Unsubscribing, please wait…';
+
+  try {
+    const rosterRes = await fetch(ROSTER_URL);
+    const rosterData = await rosterRes.json();
+    const member = rosterData.roster.find(m => (m.email || `${m['First Name']}-${m['Last Name']}`) === memberValue);
+
+    if (!member) {
+      notice.textContent = 'Member not found.';
+      return;
     }
 
-    // Unsubscribe
-    document.getElementById('unsubscribeForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const form = e.target;
-      const notice = document.getElementById('unsubscribeNotice');
-      const submitBtn = form.querySelector('button[type="submit"]');
-      
-      // Disable button + show message
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Processing...';
-      notice.textContent = 'Unsubscribing, please wait…';
-    
-      const select = document.getElementById('unsubscribeSelect');
-      const memberIndex = select.value;
-      if (memberIndex === '') return;
-    
-      try {
-        const rosterRes = await fetch(ROSTER_URL);
-        const rosterData = await rosterRes.json();
-        const selectedEmail = select.value;
-        const member = rosterData.roster.find(m => (m.email || `${m['First Name']}-${m['Last Name']}`) === selectedEmail);
-    
-        const res = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'update_roster',
-            firstName: member['First Name'],
-            lastName: member['Last Name'],
-            email: member.email || '',
-            phone: member.phone || '',
-            status: 'Not Active'
-          })
-        });
-        const result = await res.json();
-    
-        if (result.ok) {
-          notice.textContent = '✅ Successfully unsubscribed!';
-          fetchRoster();
-          document.getElementById('unsubscribeModal').classList.add('hide');
-        } else {
-          notice.textContent = '❌ Error: ' + (result.error || 'unknown');
-        }
-      } catch (err) {
-        console.error(err);
-        notice.textContent = '❌ Error unsubscribing.';
-      } finally {
-        // Re-enable button
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Unsubscribe';
-      }
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'update_roster',
+        firstName: member['First Name'],
+        lastName: member['Last Name'],
+        email: member.email || '',
+        phone: member.phone || '',
+        status: 'Not Active'
+      })
     });
+    const result = await res.json();
+
+    if (result.ok) {
+      notice.textContent = '✅ Successfully unsubscribed!';
+      // show success briefly then close + refresh
+      setTimeout(() => {
+        document.getElementById('unsubscribeModal').classList.add('hide');
+        notice.textContent = '';
+        fetchRoster();
+      }, 2000);
+    } else {
+      notice.textContent = '❌ Error: ' + (result.error || 'unknown');
+    }
+  } catch (err) {
+    console.error(err);
+    notice.textContent = '❌ Error unsubscribing.';
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Unsubscribe';
+  }
+});
+
    
       document.getElementById('closeUnsubModal').addEventListener('click', () => {
       document.getElementById('unsubscribeModal').classList.add('hide');
