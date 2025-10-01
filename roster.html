@@ -114,17 +114,21 @@
         const result = await res.json();
   
         if (result.ok) {
-          notice.textContent = '✅ Successfully added!';
-          //document.getElementById('subscribeNotice').textContent = 'Successfully added!';
-          form.reset();
-          fetchRoster(); 
-        } else {
+            notice.textContent = '✅ Successfully added!';
+            
+            // wait 2 seconds before closing + resetting
+            setTimeout(() => {
+              document.getElementById('subscribeModal').classList.add('hide');
+              form.reset();
+              notice.textContent = '';
+              fetchRoster();
+            }, 2000);
+          }
+        else {
           notice.textContent = '❌ Error: ' + (result.error || 'unknown');
-          //document.getElementById('subscribeNotice').textContent = 'Error: ' + (result.error || 'unknown');
         }
-        catch (err) {
+      } catch (err) {
           console.error(err);
-          //document.getElementById('subscribeNotice').textContent = 'Error submitting form.';
           notice.textContent = '❌ Error submitting form.';
         } finally {
           submitBtn.disabled = false;
@@ -229,7 +233,7 @@
       const data = await res.json();
 
       if (!data.ok || !data.roster) {
-            loadingEl.textContent = 'Failed to load roster.';  
+            loadingEl.textContent = 'Failed to load roster.  Please reload the page.';  
         return;
       }
       cachedRoster = data.roster;
