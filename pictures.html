@@ -61,17 +61,38 @@ let currentIndex = 0;
 
 // Create gallery
 images.forEach((name, index) => {
+  // Container for image + caption
+  const container = document.createElement("div");
+  container.style.textAlign = "center"; // center image & text
+  container.style.cursor = "pointer"; // indicate it's clickable
+
+  // Create image
   const img = document.createElement("img");
   img.src = `pics/${name}`;
   img.alt = name;
-  img.style.cursor = "pointer";
-
+  img.style.maxWidth = "200px";
+  img.style.borderRadius = "8px";
+  img.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+  
+  // Add click event for lightbox
   img.addEventListener("click", () => {
     currentIndex = index;
     showLightbox();
   });
 
-  gallery.appendChild(img);
+  // Create caption below thumbnail
+  const caption = document.createElement("div");
+  caption.textContent = name.replace(/\.[^/.]+$/, ""); // remove file extension
+  caption.style.marginTop = "6px";
+  caption.style.fontSize = "0.9rem";
+  caption.style.color = "#333";
+
+  // Append image + caption to container
+  container.appendChild(img);
+  container.appendChild(caption);
+
+  // Add container to gallery
+  gallery.appendChild(container);
 });
 
 const caption = document.getElementById("lightbox-caption");
