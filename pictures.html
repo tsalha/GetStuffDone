@@ -82,8 +82,9 @@ function showLightbox() {
   lightbox.style.display = "flex";
 
   // Set caption: filename and position
-  const name = images[currentIndex].replace(/^.*[\\\/]/, ''); // remove path
-  caption.textContent = `${name} — ${currentIndex + 1} of ${images.length}`;
+  const fullName = images[currentIndex].replace(/^.*[\\\/]/, '');  // remove path
+  const cleanName = fullName.replace(/\.[^/.]+$/, "");              // remove extension
+  caption.textContent = `${cleanName} — ${currentIndex + 1} of ${images.length}`;
 }
 
 // Hide lightbox when clicking outside image
