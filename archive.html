@@ -127,7 +127,7 @@ async function refresh() {
     try {
         const data = await fetch(API_BASE).then(r => r.json());
         if (!data || !data.ok) return;
-        const archivedEvents = (data.events || []).filter(ev => ev.Archived === true);
+        const archivedEvents = (data.events || []).filter(ev => ev.Archived === TRUE);
         const snap = JSON.stringify(archivedEvents);
         if (!initialized || snap !== lastSnapshot){
             render(archivedEvents);
