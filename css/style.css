@@ -127,3 +127,8 @@
   font-size: 1rem;
   font-family: 'Inter', sans-serif;
 }
+.description {
+    margin-top: 4px;
+    font-size: 0.95em;
+    color: #333;
+}
