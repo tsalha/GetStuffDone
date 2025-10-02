@@ -85,14 +85,11 @@ function fmtTime(time24) {
 }
 
 function render(events){
-    // Filter only archived events
-    const archived = events.filter(ev => ev.is_archived === "TRUE");
-
     document.getElementById('loading').style.display = 'none';
     listEl.style.display = 'block';
     listEl.innerHTML = '';
 
-    archived.forEach(ev => {
+    events.forEach(ev => {
         const node = tpl.content.cloneNode(true);
 
         const start = ev.start_time ? fmtTime(ev.start_time) : '';
@@ -115,14 +112,16 @@ function render(events){
 // Live refresh
 let initialized = false;
 let lastSnapshot = '';
+
 async function refresh() {
     try {
         const data = await fetch(API_BASE).then(r => r.json());
         if (!data || !data.ok) return;
 
-        const archivedEvents = (data.events || []).filter(ev => ev.is_archived === "TRUE");
-        const snap = JSON.stringify(archivedEvents);
+        // Filter archived events (normalize value to string, lowercase)
+        const archivedEvents = (data.events || []).filter(ev => String(ev.is_archived).toLowerCase() === "true");
 
+        const snap = JSON.stringify(archivedEvents);
         if (!initialized || snap !== lastSnapshot){
             render(archivedEvents);
             initialized = true;
