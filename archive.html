@@ -58,99 +58,104 @@
 const API_BASE = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec'; 
 const ADMIN_SECRET = 'STCHRIS';
 
-// Admin toggle via ?admin=SECRET
-const urlParams = new URLSearchParams(location.search);
-if(urlParams.get('admin') === ADMIN_SECRET){ 
-    document.getElementById('admin').classList.remove('hide'); 
-}
-
 const listEl = document.getElementById('events');
-const tpl = document.getElementById('event-tpl');
+  const tpl = document.getElementById('event-tpl');
 
-function fmtDate(d){
-    const dt = (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d))
-        ? new Date(d + 'T00:00:00')
-        : new Date(d);
-    if (isNaN(dt)) return 'Invalid date';
-    return dt.toLocaleDateString(undefined, {weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'});
-}
+  // === UTILITY FUNCTIONS ===
+  function fmtDate(d){
+      const dt = (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d))
+          ? new Date(d + 'T00:00:00')
+          : new Date(d);
+      if (isNaN(dt)) return 'Invalid date';
+      return dt.toLocaleDateString(undefined, {weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'});
+  }
 
-function fmtTime(time24) {
-    if (!time24) return ''; 
-    const [hourStr, minute] = time24.split(':');
-    let hour = parseInt(hourStr, 10);
-    const ampm = hour >= 12 ? 'pm' : 'am';
-    hour = hour % 12 || 12; 
-    return `${hour}:${minute} ${ampm}`;
-}
+  function fmtTime(time24) {
+      if (!time24) return ''; 
+      const [hourStr, minute] = time24.split(':');
+      let hour = parseInt(hourStr, 10);
+      const ampm = hour >= 12 ? 'pm' : 'am';
+      hour = hour % 12 || 12; 
+      return `${hour}:${minute} ${ampm}`;
+  }
 
-function render(events){
-    document.getElementById('loading').style.display = 'none';
-    listEl.style.display = 'block';
-    listEl.innerHTML = '';
+  // === RENDER EVENTS ===
+  function render(events){
+      document.getElementById('loading').style.display = 'none';
+      listEl.style.display = 'block';
+      listEl.innerHTML = '';
 
-    events.forEach(ev => {
-        const node = tpl.content.cloneNode(true);
+      if(events.length === 0){
+          listEl.innerHTML = '<p>No archived events yet.</p>';
+          return;
+      }
 
-        const start = ev.start_time ? fmtTime(ev.start_time) : '';
-        const end = ev.end_time ? fmtTime(ev.end_time) : '';
-        node.querySelector('h3').textContent = `${ev.title} — ${fmtDate(ev.date_iso)}${start ? ' @ ' + start : ''}${end ? ' to ' + end : ''}`;
-        node.querySelector('.capacity').textContent = `${ev.confirmed.length}/${ev.capacity} signed up` + (ev.waitlisted.length ? ` • ${ev.waitlisted.length} on waitlist` : '');
+      events.forEach(ev => {
+          const node = tpl.content.cloneNode(true);
 
-        const names = node.querySelector('.names');
-        ev.confirmed.forEach(s => { 
-            const chip = document.createElement('span'); 
-            chip.className = 'name'; 
-            chip.textContent = s.name; 
-            names.appendChild(chip); 
-        });
+          const start = ev.start_time ? fmtTime(ev.start_time) : '';
+          const end = ev.end_time ? fmtTime(ev.end_time) : '';
+          node.querySelector('h3').textContent = `${ev.title} — ${fmtDate(ev.date_iso)}${start ? ' @ ' + start : ''}${end ? ' to ' + end : ''}`;
+          node.querySelector('.capacity').textContent = `${ev.confirmed.length}/${ev.capacity} signed up` + (ev.waitlisted.length ? ` • ${ev.waitlisted.length} on waitlist` : '');
 
-        listEl.appendChild(node);
-    });
-}
+          const names = node.querySelector('.names');
+          ev.confirmed.forEach(s => { 
+              const chip = document.createElement('span'); 
+              chip.className = 'name'; 
+              chip.textContent = s.name; 
+              names.appendChild(chip); 
+          });
 
-// Live refresh
-let initialized = false;
-let lastSnapshot = '';
+          listEl.appendChild(node);
+      });
+  }
 
-async function refresh() {
-    try {
-        const data = await fetch(API_BASE).then(r => r.json());
-        if (!data || !data.ok) return;
+  // === LIVE REFRESH ===
+  let initialized = false;
+  let lastSnapshot = '';
 
-        // Filter archived events (normalize value to string, lowercase)
-        const archivedEvents = (data.events || []).filter(ev => String(ev.is_archived).toLowerCase() === "true");
+  async function refresh() {
+      try {
+          const data = await fetch(API_BASE).then(r => r.json());
+          if (!data || !data.ok) return;
 
-        const snap = JSON.stringify(archivedEvents);
-        if (!initialized || snap !== lastSnapshot){
-            render(archivedEvents);
-            initialized = true;
-            lastSnapshot = snap;
-        }
-    } catch(e){
-        console.error('Error fetching events:', e);
-    }
-}
+          const snap = JSON.stringify(data.events);
 
-refresh();
-setInterval(refresh, 3000);
+          if (!initialized || snap !== lastSnapshot){
+              render(data.events);
+              initialized = true;
+              lastSnapshot = snap;
+          }
+      } catch(e){
+          console.error('Error fetching events:', e);
+      }
+  }
 
-// Admin create event
-const adminForm = document.getElementById('adminForm');
-if(adminForm){
-    adminForm.addEventListener('submit', async (e)=>{
-        e.preventDefault();
-        const fd = new FormData(adminForm);
-        const body = Object.fromEntries(fd.entries());
-        body.action = 'create_event';
-        body.admin_secret = ADMIN_SECRET;
-        const res = await fetch(API_BASE, {method:'POST', body: JSON.stringify(body)}).then(r=>r.json());
-        if(!res.ok){ alert(res.error||'Error'); return; }
-        adminForm.reset();
-        refresh();
-    });
-}
-  </script>
+  refresh();
+  setInterval(refresh, 3000);
+
+  // === ADMIN TOGGLE ===
+  const urlParams = new URLSearchParams(location.search);
+  if(urlParams.get('admin') === ADMIN_SECRET){ 
+      document.getElementById('admin').classList.remove('hide'); 
+  }
+
+  // Admin form submission (if you keep the form on this page)
+  const adminForm = document.getElementById('adminForm');
+  if(adminForm){
+      adminForm.addEventListener('submit', async (e)=>{
+          e.preventDefault();
+          const fd = new FormData(adminForm);
+          const body = Object.fromEntries(fd.entries());
+          body.action = 'create_event';
+          body.admin_secret = ADMIN_SECRET;
+          const res = await fetch(API_BASE, {method:'POST', body: JSON.stringify(body)}).then(r=>r.json());
+          if(!res.ok){ alert(res.error||'Error'); return; }
+          adminForm.reset();
+          refresh();
+      });
+  }
+</script>
 
 </body>
 </html>
