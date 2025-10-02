@@ -65,10 +65,16 @@ images.forEach((name, index) => {
   gallery.appendChild(img);
 });
 
-// Show lightbox
+const caption = document.getElementById("lightbox-caption");
+
 function showLightbox() {
+  // Set image
   lightboxImg.src = images[currentIndex].startsWith("pics/") ? images[currentIndex] : `pics/${images[currentIndex]}`;
   lightbox.style.display = "flex";
+
+  // Set caption: filename and position
+  const name = images[currentIndex].replace(/^.*[\\\/]/, ''); // remove path
+  caption.textContent = `${name} — ${currentIndex + 1} of ${images.length}`;
 }
 
 // Hide lightbox when clicking outside image
@@ -103,10 +109,12 @@ document.addEventListener("keydown", (e) => {
 
 <div id="lightbox" class="lightbox">
   <span class="arrow prev">&#10094;</span>
-  <img id="lightbox-img" src="" alt="Enlarged photo">
+  <div class="lightbox-content">
+    <img id="lightbox-img" src="" alt="Enlarged photo">
+    <div id="lightbox-caption" class="caption"></div>
+  </div>
   <span class="arrow next">&#10095;</span>
 </div>
-
 
 </body>
 </html>
