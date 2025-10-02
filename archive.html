@@ -76,150 +76,101 @@
   </template>
 
   <script>
-    const API_BASE = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec'; // e.g., https://script.google.com/macros/s/AKfycb.../exec
-    const ADMIN_SECRET = 'STCHRIS'; // also set in Apps Script script properties
+const API_BASE = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec'; 
+const ADMIN_SECRET = 'STCHRIS'; // still used for admin toggle
 
-    // Admin toggle via ?admin=SECRET
-    const urlParams = new URLSearchParams(location.search);
-    if(urlParams.get('admin') === ADMIN_SECRET){ document.getElementById('admin').classList.remove('hide'); }
+// Admin toggle via ?admin=SECRET
+const urlParams = new URLSearchParams(location.search);
+if(urlParams.get('admin') === ADMIN_SECRET){ 
+    document.getElementById('admin').classList.remove('hide'); 
+}
 
-    async function apiGet(){
-      const r = await fetch(API_BASE);
-      return r.json();
-    }
-    async function apiPost(body){
-      const r = await fetch(API_BASE, {method:'POST', body: JSON.stringify(body)});
-      return r.json();
-    }
+const listEl = document.getElementById('events');
+const tpl = document.getElementById('event-tpl');
 
-    const listEl = document.getElementById('events');
-    const tpl = document.getElementById('event-tpl');
-
-    function fmtDate(d){
-      const dt = (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d))
+function fmtDate(d){
+    const dt = (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d))
         ? new Date(d + 'T00:00:00')
         : new Date(d);
-      
-      if (isNaN(dt)) return 'Invalid date';
-      return dt.toLocaleDateString(undefined, {weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'});
-    }
+    if (isNaN(dt)) return 'Invalid date';
+    return dt.toLocaleDateString(undefined, {weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'});
+}
 
-    function fmtTime(time24) {
-      if (!time24) return ''; 
-      const [hourStr, minute] = time24.split(':');
-      let hour = parseInt(hourStr, 10);
-      const ampm = hour >= 12 ? 'pm' : 'am';
-      hour = hour % 12 || 12; 
-      return `${hour}:${minute} ${ampm}`;
-    }
+function fmtTime(time24) {
+    if (!time24) return ''; 
+    const [hourStr, minute] = time24.split(':');
+    let hour = parseInt(hourStr, 10);
+    const ampm = hour >= 12 ? 'pm' : 'am';
+    hour = hour % 12 || 12; 
+    return `${hour}:${minute} ${ampm}`;
+}
 
-    function render(events){
-      document.getElementById('loading').style.display = 'none'; // hide loading
-      listEl.style.display = 'block'; // show events
-      listEl.innerHTML = '';
-      events.forEach(ev=>{
+function render(events){
+    const archived = events.filter(ev => ev.Archived === true); // only archived
+    document.getElementById('loading').style.display = 'none';
+    listEl.style.display = 'block';
+    listEl.innerHTML = '';
+    archived.forEach(ev => {
         const node = tpl.content.cloneNode(true);
+
         const start = ev.start_time ? fmtTime(ev.start_time) : '';
         const end = ev.end_time ? fmtTime(ev.end_time) : '';
-
         node.querySelector('h3').textContent = `${ev.title} — ${fmtDate(ev.date_iso)}${start ? ' @ ' + start : ''}${end ? ' to ' + end : ''}`;
-
-        //node.querySelector('h3').textContent = `${ev.title} — ${fmtDate(ev.date_iso)}${ev.start_time? ' @ ' + ev.start_time: ' to '} to ${ev.end_time}`;
-        node.querySelector('.capacity').textContent = `${ev.confirmed.length}/${ev.capacity} signed up` + (ev.waitlisted.length? ` • ${ev.waitlisted.length} on waitlist`: '');
+        node.querySelector('.capacity').textContent = `${ev.confirmed.length}/${ev.capacity} signed up` + (ev.waitlisted.length ? ` • ${ev.waitlisted.length} on waitlist` : '');
 
         const names = node.querySelector('.names');
-        ev.confirmed.forEach(s=>{ const chip = document.createElement('span'); chip.className='name'; chip.textContent=s.name; names.appendChild(chip); });
+        ev.confirmed.forEach(s => { 
+            const chip = document.createElement('span'); 
+            chip.className = 'name'; 
+            chip.textContent = s.name; 
+            names.appendChild(chip); 
+        });
 
-        const form = node.querySelector('form.signup');
-        const tokenArea = node.querySelector('.token-area');
-        form.addEventListener('submit', async (e)=>{
-          e.preventDefault();
-          const fd = new FormData(form);
-          const payload = Object.fromEntries(fd.entries());
-          payload.action = 'signup';
-          payload.event_id = ev.id;
-          const res = await apiPost(payload);
-          if(!res.ok){ alert(res.error||'Error'); return; }
-          tokenArea.classList.remove('hide');
-          tokenArea.innerHTML = `\n<strong>Saved.</strong> Status: ${res.status}.<br>\nCopy your private link to edit/cancel: <code>${location.origin}${location.pathname}?edit=${res.id}&token=${res.token}</code>\n`;
-          form.reset();
-          // Immediate UI update
-          if(res.status==='CONFIRMED'){
-            const chip = document.createElement('span'); chip.className='name'; chip.textContent=payload.name; names.appendChild(chip);
-          }
-        });
-     
-        // ICS download
-        node.querySelector('.ics').addEventListener('click', ()=>{
-          const ics = generateICS(ev);
-          const blob = new Blob([ics], {type:'text/calendar'});
-          const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${ev.title}.ics`; a.click();
-        });
-      
+        // Remove sign-up form and ICS button
+        node.querySelector('form.signup').remove();
+        const icsBtn = node.querySelector('.ics');
+        if (icsBtn) icsBtn.remove();
+
         listEl.appendChild(node);
-      });
-    }
+    });
+}
 
-    // Poll for live updates every 12s (can tune down)
-    async function refresh(){
-      try{ const data = await apiGet(); if(data.ok) render(data.events); }catch(e){}
-    }
-    refresh();
-    setInterval(refresh, 3000);
+// Live refresh
+let initialized = false;
+let lastSnapshot = '';
+async function refresh() {
+    try {
+        const data = await fetch(API_BASE).then(r => r.json());
+        if (!data || !data.ok) return;
+        const archivedEvents = (data.events || []).filter(ev => ev.Archived === true);
+        const snap = JSON.stringify(archivedEvents);
+        if (!initialized || snap !== lastSnapshot){
+            render(archivedEvents);
+            initialized = true;
+            lastSnapshot = snap;
+        }
+    } catch(e){}
+}
 
-    //1:05 ADD
-    let initialized = false;
-    let lastSnapshot = '';
+refresh();
+setInterval(refresh, 3000);
 
-    async function refresh() {
-      try {
-          const data = await apiGet();
-          if (!data || !data.ok) return;
-          const snap = JSON.stringify(data.events||[]);
-          if (!initialized || snap !== lastSnapshot){
-              render(data.events);
-              initialized = true;
-              lastSnapshot = snap;
-            }
-      } catch(e){}
-    }
-    //refresh();
-
-    // Admin create event
-    const adminForm = document.getElementById('adminForm');
-    if(adminForm){
-      adminForm.addEventListener('submit', async (e)=>{
+// Admin create event
+const adminForm = document.getElementById('adminForm');
+if(adminForm){
+    adminForm.addEventListener('submit', async (e)=>{
         e.preventDefault();
         const fd = new FormData(adminForm);
         const body = Object.fromEntries(fd.entries());
         body.action = 'create_event';
         body.admin_secret = ADMIN_SECRET;
-        const res = await apiPost(body);
+        const res = await fetch(API_BASE, {method:'POST', body: JSON.stringify(body)}).then(r=>r.json());
         if(!res.ok){ alert(res.error||'Error'); return; }
         adminForm.reset();
         refresh();
-      });
-    }
+    });
+}
+</script>
 
-    // Edit/cancel flow using token in URL
-    const editId = urlParams.get('edit');
-    const token  = urlParams.get('token');
-    if(editId && token){
-      const cancel = confirm('Do you want to cancel your sign-up?');
-      if(cancel){
-        apiPost({action:'cancel', signup_id: editId, token})
-          .then(()=>refresh());
-      }
-    }
-
-    function generateICS(ev){
-      // Simple ICS for all-day or time-bound event
-      const dt = ev.date_iso.replace(/-/g,'');
-      const start = (ev.start_time? dt + 'T' + ev.start_time.replace(':','') + '00' : dt);
-      const end = (ev.end_time? dt + 'T' + ev.end_time.replace(':','') + '00' : dt);
-      return `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Get Stuff Done//EN\nBEGIN:VEVENT\nUID:${crypto.randomUUID()}\nDTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').split('.')[0]}Z\nDTSTART:${start}\n${ev.end_time? 'DTEND:'+end+'\n':''}SUMMARY:${escapeICS(ev.title)}\nDESCRIPTION:${escapeICS(ev.description||'')}\nLOCATION:${escapeICS(ev.location||'')}\nEND:VEVENT\nEND:VCALENDAR`;
-    }
-    function escapeICS(s){return (s||'').replace(/[\\,;\n]/g, m=>({"\\":"\\\\", ",":"\\,",";":"\\;","\n":"\\n"}[m]));}
-  </script>
 </body>
 </html>
