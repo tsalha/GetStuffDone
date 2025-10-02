@@ -121,3 +121,14 @@
 
 .lightbox .prev { left: 10px; }
 .lightbox .next { right: 10px; }
+
+.lightbox-content {
+  text-align: center;
+}
+
+.caption {
+  color: white;
+  margin-top: 10px;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+}
