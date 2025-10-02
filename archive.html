@@ -17,15 +17,9 @@
         <h1>Get Stuff Done Committee</h1>
         <div class="sub">Volunteer opportunities</div>
         <div style="margin-top: 16px;">
-          <a href="https://www.scgetstuffdone.com/index.html" class="btn">
-            Events
-          </a>
-          <a href="https://www.scgetstuffdone.com/roster.html" class="btn">
-            Roster (click here to subscribe/unsubscribe)
-          </a>
-          <a href="https://www.scgetstuffdone.com/pictures.html" class="btn">
-            GSD Pics
-          </a>
+          <a href="https://www.scgetstuffdone.com/index.html" class="btn">Events</a>
+          <a href="https://www.scgetstuffdone.com/roster.html" class="btn">Roster (click here to subscribe/unsubscribe)</a>
+          <a href="https://www.scgetstuffdone.com/pictures.html" class="btn">GSD Pics</a>
         </div>
       </div>
     </div>
@@ -47,22 +41,22 @@
     </div>
   </div>
 
-<main class="wrap">
-  <div id="loading">Loading archived events, please wait…</div>
-  <section id="events" style="display:none;"></section>
-</main>
+  <main class="wrap">
+    <div id="loading">Loading archived events, please wait…</div>
+    <section id="events" style="display:none;"></section>
+  </main>
 
-<template id="event-tpl">
-  <article class="event">
-    <h3></h3>
-    <div class="capacity"></div>
-    <div class="names" style="margin-top:4px"></div>
-  </article>
-</template>
+  <template id="event-tpl">
+    <article class="event">
+      <h3></h3>
+      <div class="capacity"></div>
+      <div class="names" style="margin-top:4px"></div>
+    </article>
+  </template>
 
   <script>
 const API_BASE = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec'; 
-const ADMIN_SECRET = 'STCHRIS'; // still used for admin toggle
+const ADMIN_SECRET = 'STCHRIS';
 
 // Admin toggle via ?admin=SECRET
 const urlParams = new URLSearchParams(location.search);
@@ -91,10 +85,13 @@ function fmtTime(time24) {
 }
 
 function render(events){
-    const archived = events.filter(ev => ev.Archived === TRUE); // only archived
+    // Filter only archived events
+    const archived = events.filter(ev => ev.is_archived === true);
+
     document.getElementById('loading').style.display = 'none';
     listEl.style.display = 'block';
     listEl.innerHTML = '';
+
     archived.forEach(ev => {
         const node = tpl.content.cloneNode(true);
 
@@ -111,11 +108,6 @@ function render(events){
             names.appendChild(chip); 
         });
 
-        // Remove sign-up form and ICS button
-        node.querySelector('form.signup').remove();
-        const icsBtn = node.querySelector('.ics');
-        if (icsBtn) icsBtn.remove();
-
         listEl.appendChild(node);
     });
 }
@@ -127,14 +119,18 @@ async function refresh() {
     try {
         const data = await fetch(API_BASE).then(r => r.json());
         if (!data || !data.ok) return;
-        const archivedEvents = (data.events || []).filter(ev => ev.Archived === TRUE);
+
+        const archivedEvents = (data.events || []).filter(ev => ev.is_archived === true);
         const snap = JSON.stringify(archivedEvents);
+
         if (!initialized || snap !== lastSnapshot){
             render(archivedEvents);
             initialized = true;
             lastSnapshot = snap;
         }
-    } catch(e){}
+    } catch(e){
+        console.error('Error fetching events:', e);
+    }
 }
 
 refresh();
@@ -155,7 +151,7 @@ if(adminForm){
         refresh();
     });
 }
-</script>
+  </script>
 
 </body>
 </html>
