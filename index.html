@@ -123,8 +123,12 @@
         const end = ev.end_time ? fmtTime(ev.end_time) : '';
 
         node.querySelector('h3').textContent = `${ev.title} — ${fmtDate(ev.date_iso)}${start ? ' @ ' + start : ''}${end ? ' to ' + end : ''}`;
-
-        //node.querySelector('h3').textContent = `${ev.title} — ${fmtDate(ev.date_iso)}${ev.start_time? ' @ ' + ev.start_time: ' to '} to ${ev.end_time}`;
+        if(ev.description){
+            const desc = document.createElement('div');
+            desc.className = 'description';
+            desc.textContent = ev.description;
+            node.querySelector('h3').after(desc);
+        }
         node.querySelector('.capacity').textContent = `${ev.confirmed.length}/${ev.capacity} signed up` + (ev.waitlisted.length? ` • ${ev.waitlisted.length} on waitlist`: '');
 
         const names = node.querySelector('.names');
