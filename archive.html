@@ -52,28 +52,13 @@
     <section id="events" style="display:none;"></section>
   </main>
 
-  <template id="event-tpl">
-    <article class="event">
-      <h3></h3>
-      <div class="capacity"></div>
-      <div class="names"></div>
-      <details style="margin-top:8px">
-        <summary>Sign up</summary>
-        <form class="signup">
-          <input name="name" placeholder="Your name" required>
-          <input name="email" type="email" placeholder="Email" required>
-          <input name="phone" type="tel" placeholder="Phone" class="full">
-          <div class="notice">Your name will appear publicly on this page. Email/phone are private.</div>
-          <div class="notice">On submit, you’ll receive an email confirmation with a cancel link.</div>
-          <button class="btn primary full">Sign up</button>
-        </form>
-        <div class="token-area hide notice"></div>
-      </details>
-      <div style="margin-top:8px">
-        <button class="btn ics">Add to Calendar</button>
-      </div>
-    </article>
-  </template>
+<template id="event-tpl">
+  <article class="event">
+    <h3></h3>
+    <div class="capacity"></div>
+    <div class="names" style="margin-top:4px"></div>
+  </article>
+</template>
 
   <script>
 const API_BASE = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec'; 
