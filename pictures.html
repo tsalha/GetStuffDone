@@ -32,18 +32,25 @@
   </header>
 
 <main class="wrap">
-    <h2>Photo Gallery</h2>
-    <div class="gallery">
-      <?php
-        // Get all images in /pics
-        $images = glob("pics/*.{jpg,jpeg,png,gif}", GLOB_BRACE);
+  <h2>Photo Gallery</h2>
+  <div id="gallery" class="gallery"></div>
+</main>
 
-        foreach($images as $img){
-          echo "<img src='$img' alt='Gallery image'>";
-        }
-      ?>
-    </div>
-  </main>
+<script>
+const images = [
+  "2025 Traveler Challenge 1.jpg",
+  "2025 Traveler Challenge 2.jpg"
+];
+
+const gallery = document.getElementById("gallery");
+
+images.forEach(name => {
+  const img = document.createElement("img");
+  img.src = `pics/${name}`;
+  img.alt = name;
+  gallery.appendChild(img);
+});
+</script>
 
 </body>
 </html>
