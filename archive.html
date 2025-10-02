@@ -91,7 +91,7 @@ function fmtTime(time24) {
 }
 
 function render(events){
-    const archived = events.filter(ev => ev.Archived === true); // only archived
+    const archived = events.filter(ev => ev.Archived === TRUE); // only archived
     document.getElementById('loading').style.display = 'none';
     listEl.style.display = 'block';
     listEl.innerHTML = '';
