@@ -56,6 +56,7 @@
 
   <script>
 const API_BASE = 'https://script.google.com/macros/s/AKfycbw4T5tw1oO56KLYyIrkyyrAC-AUdht_mN2jwSSqIptd13he7VrcnYNnJ1E_veZziToO/exec'; 
+const ARCHIVED_EVENTS = `${API_BASE}?type=archived`;
 const ADMIN_SECRET = 'STCHRIS';
 
 const listEl = document.getElementById('events');
@@ -116,7 +117,7 @@ const listEl = document.getElementById('events');
 
   async function refresh() {
       try {
-          const data = await fetch(API_BASE).then(r => r.json());
+          const data = await fetch(ARCHIVED_EVENTS).then(r => r.json());
           if (!data || !data.ok) return;
 
           const snap = JSON.stringify(data.events);
