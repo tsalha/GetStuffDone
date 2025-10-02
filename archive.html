@@ -86,7 +86,7 @@ function fmtTime(time24) {
 
 function render(events){
     // Filter only archived events
-    const archived = events.filter(ev => ev.is_archived === true);
+    const archived = events.filter(ev => ev.is_archived === "TRUE");
 
     document.getElementById('loading').style.display = 'none';
     listEl.style.display = 'block';
@@ -120,7 +120,7 @@ async function refresh() {
         const data = await fetch(API_BASE).then(r => r.json());
         if (!data || !data.ok) return;
 
-        const archivedEvents = (data.events || []).filter(ev => ev.is_archived === true);
+        const archivedEvents = (data.events || []).filter(ev => ev.is_archived === "TRUE");
         const snap = JSON.stringify(archivedEvents);
 
         if (!initialized || snap !== lastSnapshot){
