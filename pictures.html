@@ -45,27 +45,68 @@ const images = [
 const gallery = document.getElementById("gallery");
 const lightbox = document.getElementById("lightbox");
 const lightboxImg = document.getElementById("lightbox-img");
+const prev = document.querySelector(".lightbox .prev");
+const next = document.querySelector(".lightbox .next");
 
-images.forEach(name => {
+let currentIndex = 0;
+
+// Create gallery
+images.forEach((name, index) => {
   const img = document.createElement("img");
   img.src = `pics/${name}`;
   img.alt = name;
   img.style.cursor = "pointer";
 
-  // When image is clicked, show lightbox
   img.addEventListener("click", () => {
-    lightboxImg.src = img.src;
-    lightbox.style.display = "flex";
+    currentIndex = index;
+    showLightbox();
   });
 
   gallery.appendChild(img);
 });
+
+// Show lightbox
+function showLightbox() {
+  lightboxImg.src = images[currentIndex].startsWith("pics/") ? images[currentIndex] : `pics/${images[currentIndex]}`;
+  lightbox.style.display = "flex";
+}
+
+// Hide lightbox when clicking outside image
+lightbox.addEventListener("click", (e) => {
+  if (e.target === lightbox) {
+    lightbox.style.display = "none";
+  }
+});
+
+// Navigate
+prev.addEventListener("click", (e) => {
+  e.stopPropagation(); // prevent closing
+  currentIndex = (currentIndex - 1 + images.length) % images.length;
+  showLightbox();
+});
+
+next.addEventListener("click", (e) => {
+  e.stopPropagation();
+  currentIndex = (currentIndex + 1) % images.length;
+  showLightbox();
+});
+
+// Optional: use arrow keys
+document.addEventListener("keydown", (e) => {
+  if (lightbox.style.display === "flex") {
+    if (e.key === "ArrowLeft") prev.click();
+    if (e.key === "ArrowRight") next.click();
+    if (e.key === "Escape") lightbox.style.display = "none";
+  }
+});
 </script>
 
-
-<div id="lightbox" class="lightbox" onclick="this.style.display='none'">
+<div id="lightbox" class="lightbox">
+  <span class="arrow prev">&#10094;</span>
   <img id="lightbox-img" src="" alt="Enlarged photo">
+  <span class="arrow next">&#10095;</span>
 </div>
+
 
 </body>
 </html>
