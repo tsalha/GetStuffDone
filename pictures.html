@@ -35,7 +35,16 @@
   <h2>Photo Gallery</h2>
   <div id="gallery" class="gallery"></div>
 </main>
-
+  
+<div id="lightbox" class="lightbox">
+  <span class="arrow prev">&#10094;</span>
+  <div class="lightbox-content">
+    <img id="lightbox-img" src="" alt="Enlarged photo">
+    <div id="lightbox-caption" class="caption"></div>
+  </div>
+  <span class="arrow next">&#10095;</span>
+</div>
+  
 <script>
 const images = [
   "2025 Traveler Challenge 1.jpg",
@@ -106,15 +115,6 @@ document.addEventListener("keydown", (e) => {
   }
 });
 </script>
-
-<div id="lightbox" class="lightbox">
-  <span class="arrow prev">&#10094;</span>
-  <div class="lightbox-content">
-    <img id="lightbox-img" src="" alt="Enlarged photo">
-    <div id="lightbox-caption" class="caption"></div>
-  </div>
-  <span class="arrow next">&#10095;</span>
-</div>
 
 </body>
 </html>
