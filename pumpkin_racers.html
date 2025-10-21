@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pumpkin Racers — Live Results</title>
+  <title>Pumpkin Racers — Live Results (v4)</title>
   <style>
     :root{--bg:#0b0f14;--card:#121822;--ink:#e8eef7;--muted:#9bb2cc;--accent:#f59e0b;--ok:#22c55e;--warn:#ef4444}
     *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,#0b0f14,#0d131d 40%,#0b0f14);color:var(--ink)}
@@ -30,11 +30,11 @@
     .rank2{border-color:#3e3441;background:#141015;color:#c084fc}
     .rank3{border-color:#42322d;background:#15110c;color:#f97316}
     .rank4{border-color:#422d2d;background:#150c0c;color:var(--warn)}
+    .err{border-color:#5c2424;background:#2a0f0f;color:#fecaca}
     .muted{color:var(--muted)}
     .legend{display:flex;gap:8px;flex-wrap:wrap}
     .legend .pill{background:#0c121b}
     footer{opacity:.7;font-size:12px;margin-top:16px;text-align:center}
-    a{color:#93c5fd}
   </style>
 </head>
 <body>
@@ -63,10 +63,11 @@
         </div>
         <div class="grid heats" id="heats"></div>
         <div class="legend" style="margin-top:10px">
-          <span class="pill rank1">🏁 1st (advances)</span>
-          <span class="pill rank2">🥈 2nd (advances)</span>
+          <span class="pill rank1">🏁 1st</span>
+          <span class="pill rank2">🥈 2nd</span>
           <span class="pill rank3">3rd</span>
           <span class="pill rank4">4th</span>
+          <span class="pill err">Error (duplicates/missing)</span>
         </div>
       </section>
 
@@ -85,16 +86,14 @@
       </aside>
     </div>
 
-    <footer>Auto-refreshing every <span id="pollRate">10</span>s • Powered by Google Sheets</footer>
+    <footer>Auto-refresh 10s • Shows errors if race results are invalid</footer>
   </div>
 
   <script>
-    // ====== CONFIG ======
-    const SPREADSHEET_ID = "14pkK9xUEOztooiVzhms-c0mlWlgYDLlgsBRordbzNfg"; // set your ID
+    const SPREADSHEET_ID = "14pkK9xUEOztooiVzhms-c0mlWlgYDLlgsBRordbzNfg";
     const SHEETS = { races: "Races", standings: "Standings" };
-    const POLL_MS = 10000; // 10s
+    const POLL_MS = 10000;
 
-    // ====== Utilities ======
     const statusDot = document.getElementById('statusDot');
     const statusText = document.getElementById('statusText');
     const heatsEl = document.getElementById('heats');
@@ -104,90 +103,67 @@
     const standingFilter = document.getElementById('standingFilter');
     const lastSync = document.getElementById('lastSync');
 
-    function setOnline(ok){
-      statusDot.style.color = ok ? '#22c55e' : '#ef4444';
-      statusText.textContent = ok ? 'Live' : 'Offline';
-    }
-
-    function gvizUrl(sheet){
-      return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheet)}&tq=${encodeURIComponent('select *')}`;
-    }
-
+    function setOnline(ok){ statusDot.style.color = ok ? '#22c55e' : '#ef4444'; statusText.textContent = ok ? 'Live' : 'Offline'; }
+    function gvizUrl(sheet){ return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheet)}&tq=${encodeURIComponent('select *')}`; }
     async function fetchGviz(sheet){
       const res = await fetch(gvizUrl(sheet), {cache:'no-store'});
       const text = await res.text();
       const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}')+1));
       const cols = json.table.cols.map(c => c.label || c.id);
-      const rows = json.table.rows.map(r => {
-        const o = {}; r.c.forEach((cell,i)=>o[cols[i]] = cell ? cell.v : ''); return o;
-      });
+      const rows = json.table.rows.map(r => { const o = {}; r.c.forEach((cell,i)=>o[cols[i]] = cell ? cell.v : ''); return o; });
       return rows;
     }
-
     function distinct(arr){ return Array.from(new Set(arr)); }
-
     function renderRoundsSelector(rows){
       const rounds = distinct(rows.map(r=> Number(r.Round||0) || 0)).filter(x=>x>0).sort((a,b)=>a-b);
       roundSel.innerHTML = '<option value="ALL">All</option>' + rounds.map(r=>`<option value="${r}">${r}</option>`).join('');
     }
-
-    function pillForPlace(p){
-      const base = 'pill ' + (p==1?'rank1':p==2?'rank2':p==3?'rank3':'rank4');
-      const label = p==1?'1st':p==2?'2nd':p==3?'3rd':'4th';
-      return `<span class="${base}">${label}</span>`
+    function placeIndexForName(places, name){
+      const idx = places.findIndex(p => String(p||'').trim() === String(name||'').trim());
+      return idx; // 0=1st..3=4th, -1=not placed
     }
-
     function renderHeats(races){
-      const selBracket = bracketSel.value;
-      const selRound = roundSel.value;
-      const filtered = races.filter(r=> (selBracket==='ALL'||r.Bracket===selBracket) && (selRound==='ALL'|| String(r.Round)===String(selRound)));
+      const selB = bracketSel.value, selR = roundSel.value;
+      const filtered = races.filter(r=> (selB==='ALL'||r.Bracket===selB) && (selR==='ALL'|| String(r.Round)===String(selR)));
       heatsEl.innerHTML = filtered.map(r=>{
         const lanes = [r.Lane1,r.Lane2,r.Lane3,r.Lane4].filter(x=>x!=='');
         const places = [r.Place1,r.Place2,r.Place3,r.Place4].map(x=>x||'');
-        const rows = lanes.map((name,i)=>{
-          const plc = places[i];
-          const badge = plc ? pillForPlace(i+1) : '<span class="pill muted">—</span>';
+        const nonEmptyPlaces = places.filter(x=>x!=='');
+        const allIn = nonEmptyPlaces.every(p => lanes.includes(p));
+        const unique = new Set(nonEmptyPlaces).size === nonEmptyPlaces.length;
+        const complete = nonEmptyPlaces.length === lanes.length;
+        const valid = allIn && unique && (lanes.length===0 || complete);
+        const rows = lanes.map((name)=>{
+          const pos = placeIndexForName(places, name);
+          const badge = pos>=0 ? `<span class="pill rank${pos+1}">${pos+1}${pos==0?'st':pos==1?'nd':pos==2?'rd':'th'}</span>` : '<span class="pill muted">—</span>';
           return `<div class="rowline"><span class="name">${name}</span>${badge}</div>`
         }).join('');
-        return `<div class="heat">
-          <h3>Round ${r.Round} • ${r.Bracket==='W'?'Winners':'Losers'} • Heat ${r.Heat}</h3>
-          <div class="list">${rows || '<div class="muted">No racers assigned</div>'}</div>
-        </div>`
+        const err = valid ? '' : `<div class="pill err" style="margin-top:6px">Error: fix duplicate/missing place selections</div>`;
+        return `<div class="heat"><h3>Round ${r.Round} • ${r.Bracket==='W'?'Winners':'Losers'} • Heat ${r.Heat}</h3><div class="list">${rows || '<div class="muted">No racers assigned</div>'}</div>${err}</div>`;
       }).join('') || '<div class="muted">No heats to show yet.</div>';
     }
-
     function renderStandings(stand){
       const mode = standingFilter.value;
       const rows = stand
         .filter(s => mode==='ALL' || (mode==='ACTIVE' ? String(s.Active).toLowerCase()==='true' : String(s.Active).toLowerCase()!=='true'))
-        .sort((a,b)=> (String(b.Active).toLowerCase()==='true') - (String(a.Active).toLowerCase()==='true') || (a.Losses-b.Losses) || a.Name.localeCompare(b.Name));
+        .sort((a,b)=> (String(b.Active).toLowerCase()==='true') - (String(a.Active).toLowerCase()==='true') || (Number(a.Losses)-Number(b.Losses)) || String(a.Name).localeCompare(String(b.Name)));
       standingsEl.innerHTML = rows.map(s=>{
         const tag = String(s.Active).toLowerCase()==='true' ? '<span class="pill rank1">ACTIVE</span>' : '<span class="pill rank4">OUT</span>';
         return `<div class="rowline"><span class="name">${s.Name}</span><span class="muted">Losses: ${s.Losses ?? 0}</span>${tag}</div>`
       }).join('') || '<div class="muted">No entrants yet.</div>';
     }
-
     async function refresh(){
-      try{
-        setOnline(true);
+      try{ setOnline(true);
         const [races, standings] = await Promise.all([fetchGviz(SHEETS.races), fetchGviz(SHEETS.standings)]);
         if (roundSel.options.length<=1) renderRoundsSelector(races);
         renderHeats(races);
         renderStandings(standings);
         lastSync.textContent = 'Updated ' + new Date().toLocaleTimeString();
-      }catch(e){
-        console.error(e); setOnline(false); lastSync.textContent = 'Update failed';
-      }
+      }catch(e){ console.error(e); setOnline(false); lastSync.textContent = 'Update failed'; }
     }
-
     document.getElementById('refreshBtn').addEventListener('click', refresh);
     [roundSel, bracketSel, standingFilter].forEach(el=> el.addEventListener('change', refresh));
-
-    refresh();
-    setInterval(refresh, POLL_MS);
+    refresh(); setInterval(refresh, POLL_MS);
   </script>
 </body>
 </html>
-
-
-
