@@ -6,8 +6,7 @@
   <title>Pumpkin Racers — Live Results</title>
   <style>
     :root{--bg:#0b0f14;--card:#121822;--ink:#e8eef7;--muted:#9bb2cc;--accent:#f59e0b;--ok:#22c55e;--warn:#ef4444}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,#0b0f14,#0d131d 40%,#0b0f14);color:var(--ink)}
+    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,#0b0f14,#0d131d 40%,#0b0f14);color:var(--ink)}
     .wrap{max-width:1100px;margin:0 auto;padding:20px}
     header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:12px}
     h1{font-size:clamp(22px,3.4vw,36px);margin:0;letter-spacing:0.5px}
@@ -91,9 +90,7 @@
 
   <script>
     // ====== CONFIG ======
-    // 1) Publish your Google Sheet to the web (File → Share → Publish to web) and get the SPREADSHEET_ID from the URL
-    //    e.g. https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit#gid=0
-    const SPREADSHEET_ID = "REPLACE_WITH_YOUR_SHEET_ID"; // ← put your ID here
+    const SPREADSHEET_ID = "2128493689"; // set your ID
     const SHEETS = { races: "Races", standings: "Standings" };
     const POLL_MS = 10000; // 10s
 
@@ -119,9 +116,7 @@
     async function fetchGviz(sheet){
       const res = await fetch(gvizUrl(sheet), {cache:'no-store'});
       const text = await res.text();
-      // Strip JS wrapper: google.visualization.Query.setResponse(<json>);
       const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}')+1));
-      // Convert to array of objects by header
       const cols = json.table.cols.map(c => c.label || c.id);
       const rows = json.table.rows.map(r => {
         const o = {}; r.c.forEach((cell,i)=>o[cols[i]] = cell ? cell.v : ''); return o;
@@ -136,26 +131,23 @@
       roundSel.innerHTML = '<option value="ALL">All</option>' + rounds.map(r=>`<option value="${r}">${r}</option>`).join('');
     }
 
-    function nameById(map, id){ return (map.get(+id) && map.get(+id).Name) || `#${id}` }
-
     function pillForPlace(p){
       const base = 'pill ' + (p==1?'rank1':p==2?'rank2':p==3?'rank3':'rank4');
       const label = p==1?'1st':p==2?'2nd':p==3?'3rd':'4th';
       return `<span class="${base}">${label}</span>`
     }
 
-    function renderHeats(races, people){
+    function renderHeats(races){
       const selBracket = bracketSel.value;
       const selRound = roundSel.value;
       const filtered = races.filter(r=> (selBracket==='ALL'||r.Bracket===selBracket) && (selRound==='ALL'|| String(r.Round)===String(selRound)));
       heatsEl.innerHTML = filtered.map(r=>{
-        const ids = [r.Racer1_ID,r.Racer2_ID,r.Racer3_ID,r.Racer4_ID].filter(x=>x!=='');
-        const places = [r.Place1,r.Place2,r.Place3,r.Place4].map(x=>Number(x)||null);
-        const rows = ids.map((id,i)=>{
-          const nm = nameById(people,id);
+        const lanes = [r.Lane1,r.Lane2,r.Lane3,r.Lane4].filter(x=>x!=='');
+        const places = [r.Place1,r.Place2,r.Place3,r.Place4].map(x=>x||'');
+        const rows = lanes.map((name,i)=>{
           const plc = places[i];
-          const badge = plc ? pillForPlace(plc) : '<span class="pill muted">—</span>';
-          return `<div class="rowline"><span class="name">${nm}</span>${badge}</div>`
+          const badge = plc ? pillForPlace(i+1) : '<span class="pill muted">—</span>';
+          return `<div class="rowline"><span class="name">${name}</span>${badge}</div>`
         }).join('');
         return `<div class="heat">
           <h3>Round ${r.Round} • ${r.Bracket==='W'?'Winners':'Losers'} • Heat ${r.Heat}</h3>
@@ -178,13 +170,9 @@
     async function refresh(){
       try{
         setOnline(true);
-        const [races, standings] = await Promise.all([
-          fetchGviz(SHEETS.races),
-          fetchGviz(SHEETS.standings)
-        ]);
-        const people = new Map(standings.map(s=>[+s.ID, s]));
+        const [races, standings] = await Promise.all([fetchGviz(SHEETS.races), fetchGviz(SHEETS.standings)]);
         if (roundSel.options.length<=1) renderRoundsSelector(races);
-        renderHeats(races, people);
+        renderHeats(races);
         renderStandings(standings);
         lastSync.textContent = 'Updated ' + new Date().toLocaleTimeString();
       }catch(e){
@@ -195,7 +183,6 @@
     document.getElementById('refreshBtn').addEventListener('click', refresh);
     [roundSel, bracketSel, standingFilter].forEach(el=> el.addEventListener('change', refresh));
 
-    // Kickoff + poll
     refresh();
     setInterval(refresh, POLL_MS);
   </script>
