@@ -53,6 +53,7 @@
               <option value="ALL">All</option>
               <option value="W">Winners (W)</option>
               <option value="L">Losers (L)</option>
+              <option value="F">Final (F)</option>
             </select>
           </label>
           <label>Round
@@ -122,6 +123,12 @@
       const idx = places.findIndex(p => String(p||'').trim() === String(name||'').trim());
       return idx; // 0=1st..3=4th, -1=not placed
     }
+    function bracketLabel(b){
+      if (b==='W') return 'Winners';
+      if (b==='L') return 'Losers';
+      if (b==='F') return 'Final';
+      return b || '';
+    }
     function renderHeats(races){
       const selB = bracketSel.value, selR = roundSel.value;
       const filtered = races.filter(r=> (selB==='ALL'||r.Bracket===selB) && (selR==='ALL'|| String(r.Round)===String(selR)));
@@ -138,8 +145,8 @@
           const badge = pos>=0 ? `<span class="pill rank${pos+1}">${pos+1}${pos==0?'st':pos==1?'nd':pos==2?'rd':'th'}</span>` : '<span class="pill muted">—</span>';
           return `<div class="rowline"><span class="name">${name}</span>${badge}</div>`
         }).join('');
-        const err = valid ? '' : `<div class="pill err" style="margin-top:6px">Error: fix duplicate/missing place selections</div>`;
-        return `<div class="heat"><h3>Round ${r.Round} • ${r.Bracket==='W'?'Winners':'Losers'} • Heat ${r.Heat}</h3><div class="list">${rows || '<div class="muted">No racers assigned</div>'}</div>${err}</div>`;
+        const err = valid ? '' : `<div class="pill err" style="margin-top:6px">Error: fix duplicate/missing place selections</div>`;   
+        return `<div class="heat"><h3>Round ${r.Round} • ${bracketLabel(r.Bracket)} • Heat ${r.Heat}</h3><div class="list">${rows || '<div class="muted">No racers assigned</div>'}</div>${err}</div>`;
       }).join('') || '<div class="muted">No heats to show yet.</div>';
     }
     function renderStandings(stand){
@@ -167,3 +174,4 @@
   </script>
 </body>
 </html>
+
